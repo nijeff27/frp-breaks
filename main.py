@@ -295,11 +295,29 @@ def display_instructions():
     rule_window.resizable(False, False)
     title = Label(rule_window, text="Instructions", font=("Segoe UI", 18, "bold"), foreground="black")
     title.grid(row=0, column=0)
-    rule_text = """Welcome to the experiment! In this experiment, you will:
-- Input the numbers given on the paper into the grid
-- When instructed, take a break 
-
-
+    rule_text = """    Welcome to the experiment! In this experiment, you will:
+    - Input the numbers given on the paper into the grid
+    - When you click on the 'Submit' button, the timer will stop and you will take a break
+    - When you are taking the break, there are a few guidelines:
+        - You may not leave your seat. This is to minimize any bias, distractions, and keep the experiment fair.
+        - You may use your computer, phone, any other approved device, books, etc. to keep yourself occupied.
+        - If you want, take a nap!
+        - Make sure to keep an eye on the time! The program will start after the time reaches 0.
+        - Make sure to remember what you did during the breaks. This will be very important in the post-study survey.
+        - DO NOT X OUT THE PROGRAM WHEN YOU ARE TAKING THE BREAK. THIS WILL RESULT IN A LOSS OF DATA.
+    
+    - When this experiment is completed, a 'data.txt' file should appear in the same folder as this program (most likely "Downloads"). This file should be sent to the experimenter (me).
+    - You may not tamper with the data.txt file. The best way for me to receive the data.txt file is by email.
+    
+    Tips:
+    - If you want to move to the next entry to the right, you can press the 'Tab' key (like in Spreadsheets and Excel) or use the right arrow.
+    - If you want to move to the next entry to the left, you can press the 'Shift' and 'Tab' keys together or use the left arrow.
+    - If you want to move to the next entry below, you can press the 'Enter' key or use the down arrow.
+    - If you want to move to the next entry above, you can press the 'Shift' and 'Enter' keys together or use the up arrow.
+    - The timer is always ticking when not taking a break. Make sure to complete the experiment in a timely manner!
+    - Be as accurate as possible. Your score will be calculated based on your time and accuracy. You can only click on the "Submit" button once you fill out all of the entries that are available.
+    
+    Good luck!
     """
     rules = Label(rule_window, text=rule_text, font=("Segoe UI", 12), foreground="black", anchor="w", justify="left")
     rules.grid(row=1, column=0)
