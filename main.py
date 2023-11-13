@@ -291,15 +291,15 @@ def on_closing():
 def display_instructions():
     rule_window = Toplevel(root)
     rule_window.title = "Instructions"
-    rule_window.iconbitmap("icon.ico")
+    rule_window.iconbitmap(resource_path("icon.ico"))
     rule_window.resizable(False, False)
     title = Label(rule_window, text="Instructions", font=("Segoe UI", 18, "bold"), foreground="black")
     title.grid(row=0, column=0)
     rule_text = """    Welcome to the experiment! In this experiment, you will:
     - Input the numbers given on the paper into the grid
     - When you click on the 'Submit' button, the timer will stop and you will take a break
-    - When you are taking the break, there are a few guidelines:
-        - You may not leave your seat. This is to minimize any bias, distractions, and keep the experiment fair.
+    - When you are taking a break, there are a few guidelines:
+        - You may not leave your seat. This is to minimize any bias and distractions and keep the experiment fair.
         - You may use your computer, phone, any other approved device, books, etc. to keep yourself occupied.
         - If you want, take a nap!
         - Make sure to keep an eye on the time! The program will start after the time reaches 0.
@@ -314,8 +314,8 @@ def display_instructions():
     - If you want to move to the next entry to the left, you can press the 'Shift' and 'Tab' keys together or use the left arrow.
     - If you want to move to the next entry below, you can press the 'Enter' key or use the down arrow.
     - If you want to move to the next entry above, you can press the 'Shift' and 'Enter' keys together or use the up arrow.
-    - The timer is always ticking when not taking a break. Make sure to complete the experiment in a timely manner!
-    - Be as accurate as possible. Your score will be calculated based on your time and accuracy. You can only click on the "Submit" button once you fill out all of the entries that are available.
+    - The timer is always ticking when not taking a break. Make sure to complete the experiment on time!
+    - Be as accurate as possible. Your score will be calculated based on your time and accuracy. You can only click on the "Submit" button once you fill out all of the available entries.
     
     Good luck!
     """
