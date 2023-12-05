@@ -31,10 +31,9 @@ class ExperimentType(IntEnum):
     MINUTES_1 = 3
     MINUTES_3 = 4
     MINUTES_5 = 5
-    MINUTES_7 = 6
-    BREAK_1 = 7
-    BREAK_2 = 8
-    BREAK_3 = 9
+    BREAK_1 = 6
+    BREAK_3 = 7
+    BREAK_4 = 8
 
 class Movement(Enum):
     UP = 1
@@ -148,6 +147,7 @@ def find_selected_entry():
         return False
 
 def jump_to(movement: Movement):
+    global CURR_INDEX
     focus = find_selected_entry()
     if not focus:
         return
@@ -160,9 +160,10 @@ def jump_to(movement: Movement):
         case Movement.DOWN:
             entries[(row + 1 if row < ROWS - 1 else row)][column].focus_set()
         case Movement.LEFT:
-            entries[row][(column - 1 if column > 0 else column)].focus_set()
+            entries[row][(column - 1 if column > get_columns_free()[CURR_INDEX - 1][1] else column)].focus_set()
         case Movement.RIGHT:
-            entries[row][(column + 1 if column < COLUMNS - 1 else column)].focus_set()
+            temp = get_columns_free()[CURR_INDEX - 1]
+            entries[row][(column + 1 if column < temp[0] + temp[1] - 1 else column)].focus_set()
 
 def switch_button_visibility(action: Callable, button: Button | None, other: Button | None, row: int, column: int):
     if action is not None:
@@ -176,12 +177,14 @@ def get_columns_free():
     match experiment:
         case 1:
             return [[15, 0]]
-        case 2 | 3 | 4 | 5 | 6 | 8:
+        case 2 | 3 | 4 | 5:
             return [[5, 0], [5, 5], [5, 10]]
-        case 7:
+        case 6:
             return [[7, 0], [8, 7]]
-        case 9:
+        case 7:
             return [[3, 0], [4, 3], [4, 7], [4, 11]]
+        case 8:
+            return [[3, 0], [3, 3], [3, 6], [3, 9], [3, 12]]
 
 def enable_entries():
     global CURR_INDEX, COLUMNS_LEFT
@@ -195,15 +198,12 @@ def enable_entries():
 def save_data_to_file():
     amount_wrong = 0
     with open("data.txt", "w") as f:
-        f.write("Data summary for participant START\n")
-        f.write("Sheet number:  " + str(sheet_number) + "\n")
-        f.write("Experiment type:  " + experiment.name + "\n")
-        f.write("Time taken:  " + sw.timestr.get() + "\n")
-        f.write("Timestamps (in seconds):  ")
+        f.write(str(sheet_number) + "\n")
+        f.write(experiment.name + "\n")
+        f.write(sw.timestr.get() + "\n")
         for t in time_list:
             f.write(str(t) + ", ")
         f.write("\n\n")
-        f.write("Inputted data:  \n")
         for row in range(ROWS):
             for column in range(COLUMNS):
                 if not entries[row][column].get().isdigit():
@@ -213,14 +213,11 @@ def save_data_to_file():
                 f.write(entries[row][column].get() + ", ")
             f.write("\n")
 
-        f.write("\n\nAmount wrong: " + str(amount_wrong))
-        f.write("\nAccuracy: " + str(100 - round(amount_wrong / (ROWS * COLUMNS) * 100, 3)) + "%")
-        f.write("\nData summary for participant END")
+        f.write("\n\n" + str(amount_wrong))
+        f.write("\n" + str(100 - round(amount_wrong / (ROWS * COLUMNS) * 100, 3)) + "%")
 
 def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
     except Exception:
         base_path = os.path.abspath(".")
@@ -248,7 +245,7 @@ def submit_button_event():
             return root.after(3000, info_label.grid_forget)
 
     switch_button_visibility(sw.stop, submit_button, None, 26, 4)
-    time_list.append(sw.curr_elap)
+    time_list.append(sw.curr_elap - sum(time_list))
     [e.config(state='disabled') for e in open_entries]
     if COLUMNS_LEFT == 0:
         save_data_to_file()
@@ -266,14 +263,12 @@ def submit_button_event():
             timer_time = 0
         case 2:
             timer_time = 30
-        case 3:
+        case 3 | 6 | 7 | 8:
             timer_time = 60
-        case 4 | 7 | 8 | 9:
+        case 4:
             timer_time = 180
         case 5:
             timer_time = 300
-        case 6:
-            timer_time = 420
 
     timer = Timer(timer_time)
     timer.grid(row=26, column=10, columnspan=COLUMNS)
@@ -291,19 +286,19 @@ def on_closing():
 def display_instructions():
     rule_window = Toplevel(root)
     rule_window.title = "Instructions"
-    rule_window.iconbitmap("icon.ico")
+    rule_window.iconbitmap(resource_path("icon.ico"))
     rule_window.resizable(False, False)
     title = Label(rule_window, text="Instructions", font=("Segoe UI", 18, "bold"), foreground="black")
     title.grid(row=0, column=0)
-    rule_text = """    Welcome to the experiment! In this experiment, you will:
-    - Input the numbers given on the paper into the grid
-    - When you click on the 'Submit' button, the timer will stop and you will take a break
-    - When you are taking the break, there are a few guidelines:
-        - You may not leave your seat. This is to minimize any bias, distractions, and keep the experiment fair.
-        - You may use your computer, phone, any other approved device, books, etc. to keep yourself occupied.
-        - If you want, take a nap!
+    rule_text = """    Welcome to the experiment! In this experiment, you will input the numbers given on the paper into the grid.
+    
+    Basic Instructions:
+    - When you click on the 'Submit' button, the timer will stop and you will take a break.
+    - When you are taking a break, there are a few guidelines:
+    
+        - You may not leave your seat. This is to minimize any bias and distractions and keep the experiment fair.
+        - You may use your computer, phone, any other approved device, books, etc. to keep yourself occupied. You can even take a nap (if you want to).
         - Make sure to keep an eye on the time! The program will start after the time reaches 0.
-        - Make sure to remember what you did during the breaks. This will be very important in the post-study survey.
         - DO NOT X OUT THE PROGRAM WHEN YOU ARE TAKING THE BREAK. THIS WILL RESULT IN A LOSS OF DATA.
     
     - When this experiment is completed, a 'data.txt' file should appear in the same folder as this program (most likely "Downloads"). This file should be sent to the experimenter (me).
@@ -312,10 +307,14 @@ def display_instructions():
     Tips:
     - If you want to move to the next entry to the right, you can press the 'Tab' key (like in Spreadsheets and Excel) or use the right arrow.
     - If you want to move to the next entry to the left, you can press the 'Shift' and 'Tab' keys together or use the left arrow.
+    - With the 'Tab' and 'Shift-Tab' shortcuts, the cursor will 'loop back' to the beginning of the row or the end of the row.
+    
     - If you want to move to the next entry below, you can press the 'Enter' key or use the down arrow.
     - If you want to move to the next entry above, you can press the 'Shift' and 'Enter' keys together or use the up arrow.
-    - The timer is always ticking when not taking a break. Make sure to complete the experiment in a timely manner!
-    - Be as accurate as possible. Your score will be calculated based on your time and accuracy. You can only click on the "Submit" button once you fill out all of the entries that are available.
+    
+    - The timer is always ticking when not taking a break. Make sure to complete the experiment on time!
+    
+    - Be as accurate as possible. Your score will be calculated based on your time and accuracy. You can only click on the "Submit" button once you fill out all of the available entries.
     
     Good luck!
     """
@@ -359,24 +358,23 @@ del f
 data = data[str(sheet_number)]
 
 experiment_type = -1
-while not (0 < experiment_type < 11):
+while not (0 < experiment_type < 9):
     experiment_type = simpledialog.askinteger("Sheet Number", ("Enter the sheet number:\n"
                                                                     "Here are the choices:\n"
-                                                                    "1:  Control\n"
-                                                                    "2:  0.5 minutes\n"
-                                                                    "3:  1 minute\n"
-                                                                    "4:  3 minutes\n"
-                                                                    "5:  5 minutes\n"
-                                                                    "6:  7 minutes\n"
-                                                                    "7:  1 break\n"
-                                                                    "8:  2 breaks\n"
-                                                                    "9:  3 breaks\n"
+                                                                    "1:  0 breaks\n"
+                                                                    "2:  2 breaks, each 0.5 minutes\n"
+                                                                    "3:  2 breaks, each 1 minute\n"
+                                                                    "4:  2 breaks, each 3 minutes\n"
+                                                                    "5:  2 breaks, each 5 minutes\n"
+                                                                    "6:  1 break, each 1 minute\n"
+                                                                    "7:  3 breaks, each 1 minute\n"
+                                                                    "8:  4 breaks, each 1 minute\n"
                                                                     "If you do not know, please check the email for more information."))
 
     if experiment_type is None:
         experiment_type = -1
-    if not 0 < experiment_type < 10:
-        messagebox.showinfo("Error", "Please enter a valid sheet number between 1 and 9.")
+    if not 0 < experiment_type < 9:
+        messagebox.showinfo("Error", "Please enter a valid sheet number between 1 and 8.")
 
 experiment: ExperimentType
 match experiment_type:
@@ -391,13 +389,11 @@ match experiment_type:
     case 5:
         experiment = ExperimentType.MINUTES_5
     case 6:
-        experiment = ExperimentType.MINUTES_7
-    case 7:
         experiment = ExperimentType.BREAK_1
-    case 8:
-        experiment = ExperimentType.BREAK_2
-    case 9:
+    case 7:
         experiment = ExperimentType.BREAK_3
+    case 8:
+        experiment = ExperimentType.BREAK_4
 del experiment_type
 
 # Movement of selection. Allows tab loopback
